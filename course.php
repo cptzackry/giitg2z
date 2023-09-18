@@ -1,0 +1,180 @@
+<?php
+// Include the navbar before starting the session
+include 'includes/config.php';
+
+// Function to get the image file type
+function getImageType($url)
+{
+    $imageInfo = getimagesize($url);
+    if ($imageInfo !== false) {
+        $mimeType = $imageInfo['mime'];
+        if ($mimeType === 'image/jpeg' || $mimeType === 'image/jpg' || $mimeType === 'image/png') {
+            return $mimeType;
+        }
+    }
+    return null;
+}
+
+// Query to fetch courses from the database
+$query = "SELECT * FROM course";
+$result = $conn->query($query);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="shortcut icon" href="https://i.ibb.co/swfD2Yt/giitglogo-01-01.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Courses</title>
+    <link rel="stylesheet" href="style/Bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style/Bootstrap/js/bootstrap.bundle.min.js">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.0.9/fullpage.min.css"
+        integrity="sha512-8M8By+q+SldLyFJbybaHoAPD6g07xyOcscIOQEypDzBS+sTde5d6mlK2ANIZPnSyxZUqJfCNuaIvjBUi8/RS0w=="
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style/course.css">
+    <link rel="stylesheet" href="style/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/enroll.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.7.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+<?php include 'includes/navbar.php'; ?>
+
+    <div class="section web-header">
+        <div class="header-container">
+            <div class="header-content">
+                <h1>COURSE</h1>
+            </div>
+        </div>
+    </div>
+
+    <section class="main-container">
+        <h1>Choose Courses</h1>
+
+        <div class="row">
+            <?php
+            // Check if there are any courses available
+            if ($result && $result->num_rows > 0) {
+                // Loop through the courses and display them
+                while ($row = $result->fetch_assoc()) {
+                    $courseId = $row['id'];
+                    $courseName = $row['name'];
+                    $courseImg = $row['img']; // Retrieve the image URL from the database
+
+                    // Get the image type
+                    $imageType = getImageType($courseImg);
+
+                    // Check if the image type is supported (jpeg, jpg, or png)
+                    if ($imageType !== null) {
+                        echo '<div class="col-lg-3 col-md-6">';
+                        echo '<button type="button" data-toggle="modal" data-target="#Modal' . $courseId . '">';
+                        echo '<div class="course" style="background-image: url(' . $courseImg . ');">';
+                    } else {
+                        // Handle unsupported image types or show a default image
+                        echo '<div class="col-lg-3 col-md-6">';
+                        echo '<button type="button" data-toggle="modal" data-target="#Modal' . $courseId . '">';
+                        echo '<div class="course default-image">';
+                    }
+                    ?>
+                    <div class="course-container">
+                        <p><?php echo $courseName; ?></p>
+                    </div>
+                </div>
+                </button>
+            </div>
+
+            <!-- Modal for course -->
+            <div class="modal fade" id="Modal<?php echo $courseId; ?>" tabindex="-1"
+                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel"><?php echo $courseName; ?></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="lesson">
+                                <?php
+                                // Query to fetch lesson for the current course
+                                $lessonQuery = "SELECT * FROM lesson WHERE course_id = $courseId";
+                                $lessonResult = $conn->query($lessonQuery);
+
+                                // Check if there are any lesson for this course
+                                if ($lessonResult && $lessonResult->num_rows > 0) {
+                                    // Loop through the lesson for the current course and display them
+                                    while ($lessonRow = $lessonResult->fetch_assoc()) {
+                                        $lessonName = $lessonRow['name'];
+                                        $lessonLink = $lessonRow['link'];
+                                ?>
+                                <p><a href="courses/<?php echo $lessonLink; ?>"><?php echo $lessonName; ?></a></p>
+                                <?php
+                                    }
+                                } else {
+                                    // Display a message if there are no lesson for this course
+                                    echo '<p>Sorry, there are no available lesson for this course right now.</p>';
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- Add the "Enroll Me" button here -->
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary enroll-button"
+                                data-course="<?php echo $courseId; ?>">Enroll Me</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+                }
+            } else {
+                // Display a message if there are no available courses
+                echo '<div class="col-lg-12 text-center">Sorry, there are no available courses right now.</div>';
+            }
+            ?>
+        </div>
+    </section>
+
+    <?php include('includes/footer.php'); ?>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/9fb210ee5d.js" crossorigin="anonymous"></script>
+    <script>
+    $(document).ready(function() {
+        $(".enroll-button").click(function() {
+            var courseId = $(this).data("course");
+
+            $.ajax({
+                type: "POST",
+                url: "enroll.php",
+                data: { course_id: courseId },
+                success: function(data) {
+                    alert(data); // Display the response data in an alert
+                    window.location.href = 'learncourse.php'; // Redirect to the desired page
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error:", textStatus, errorThrown); // Log any errors to the console
+                    alert("An error occurred while enrolling in the course.");
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

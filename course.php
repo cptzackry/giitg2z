@@ -37,7 +37,6 @@ $result = $conn->query($query);
     <link rel="stylesheet" href="style/course.css">
     <link rel="stylesheet" href="style/style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="js/enroll.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.7.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -125,9 +124,8 @@ $result = $conn->query($query);
                         </div>
                         <div class="modal-footer">
                             <!-- Add the "Enroll Me" button here -->
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary enroll-button"
-                                data-course="<?php echo $courseId; ?>">Enroll Me</button>
+                            <a href="staffpreviewcourse.php?course_id=<?php echo $courseId; ?>" class="btn btn-primary">Preview Course</a>
+
                         </div>
                     </div>
                 </div>
@@ -154,27 +152,7 @@ $result = $conn->query($query);
         integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
         crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/9fb210ee5d.js" crossorigin="anonymous"></script>
-    <script>
-    $(document).ready(function() {
-        $(".enroll-button").click(function() {
-            var courseId = $(this).data("course");
-
-            $.ajax({
-                type: "POST",
-                url: "enroll.php",
-                data: { course_id: courseId },
-                success: function(data) {
-                    alert(data); // Display the response data in an alert
-                    window.location.href = 'learncourse.php'; // Redirect to the desired page
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX Error:", textStatus, errorThrown); // Log any errors to the console
-                    alert("An error occurred while enrolling in the course.");
-                }
-            });
-        });
-    });
-</script>
+   
 
 </body>
 </html>

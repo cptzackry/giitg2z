@@ -7,14 +7,15 @@ $lessonId = 0;
 $lessonName = "";
 $lessonDesc = "";
 $lessonLink = "";
-$courseId = 0;
+$courseName = "";
+$contentFile = ""; // Add this variable to store content file path
 
 // Check if lesson ID is provided in the URL
 if (isset($_GET['id'])) {
     $lessonId = $_GET['id'];
 
-    // Retrieve lesson details from the database
-    $selectQuery = "SELECT * FROM lesson WHERE id = ?";
+    // Retrieve lesson details from the database, including the associated course name and content file
+    $selectQuery = "SELECT lesson.*, course.name AS course_name FROM lesson JOIN course ON lesson.course_id = course.id WHERE lesson.id = ?";
     $stmt = $conn->prepare($selectQuery);
     $stmt->bind_param("i", $lessonId);
 
@@ -25,7 +26,8 @@ if (isset($_GET['id'])) {
             $lessonName = $row['name'];
             $lessonDesc = $row['desc'];
             $lessonLink = $row['link'];
-            $courseId = $row['course_id'];
+            $courseName = $row['course_name'];
+            $contentFile = $row['content_file']; // Retrieve content file path
         } else {
             echo "Lesson not found.";
             exit;
@@ -33,49 +35,6 @@ if (isset($_GET['id'])) {
     } else {
         echo "Error: " . $conn->error;
         exit;
-    }
-}
-
-// Query to fetch course names for the dropdown list
-$courseQuery = "SELECT id, name FROM course";
-$courseResult = $conn->query($courseQuery);
-$courseOptions = array();
-
-if ($courseResult && $courseResult->num_rows > 0) {
-    while ($courseRow = $courseResult->fetch_assoc()) {
-        $courseOptions[$courseRow['id']] = $courseRow['name'];
-    }
-}
-
-// Handle the form submission to update lesson information
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $lessonName = $_POST['lesson_name'];
-    $lessonDesc = $_POST['lesson_desc'];
-    $lessonLink = $_POST['lesson_link'];
-    $courseId = $_POST['course_id'];
-
-    // You can add validation and sanitization here as needed
-
-    // Update lesson information in the database
-    $updateQuery = "UPDATE lesson SET name = ?, `desc` = ?, link = ?, course_id = ? WHERE id = ?";
-    $stmt = $conn->prepare($updateQuery);
-
-    // Check if the prepare statement was successful
-    if ($stmt === false) {
-        echo "Error: " . $conn->error;
-        exit;
-    }
-
-    // Bind parameters
-    $stmt->bind_param("ssssi", $lessonName, $lessonDesc, $lessonLink, $courseId, $lessonId);
-
-    // Check if the bind_param was successful
-    if ($stmt->execute()) {
-        // Lesson updated successfully
-        header("Location: managelesson.php"); // Redirect to the manage lessons page
-        exit;
-    } else {
-        echo "Error: " . $stmt->error;
     }
 }
 ?>
@@ -86,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-    <title>Edit Lesson</title>
+    <title>Preview Lesson</title>
     <link rel="stylesheet" href="../style/Bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../style/Bootstrap/js/bootstrap.bundle.min.js">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -111,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Style the embedded video container */
         .video-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            padding-bottom: 26.25%; /* 16:9 aspect ratio */
             height: 0;
         }
 
@@ -122,74 +81,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             height: 100%;
         }
+
+        /* Style the content file download button */
+        .download-button {
+            margin-top: 20px;
+        }
     </style>
 </head>
 
 <body>
-<?php include '../includes/adminnavbar.php'; ?>
+    <?php include '../includes/adminnavbar.php'; ?>
 
     <div class="section web-header">
         <div class="header-container">
             <div class="header-content">
-                <h1>Edit Lesson</h1>
+                <h1>Preview Lesson</h1>
             </div>
         </div>
     </div>
 
     <div class="container mt-10">
-        <br>
-        <h2>Edit Lesson</h2>
-        <form method="POST" action="">
-            <div class="form-group">
-                <label for="lesson_name">Lesson Name</label>
-                <input type="text" class="form-control" id="lesson_name" name="lesson_name" value="<?php echo $lessonName; ?>" required>
-            </div>
-            <div class="form-group">
-                <label for="lesson_desc">Lesson Description</label>
-                <!-- Add a textarea for lesson description with an ID -->
-                <textarea class="form-control" id="lesson_desc" name="lesson_desc" rows="4" required><?php echo $lessonDesc; ?></textarea>
-            </div>
-            <div class="form-group">
-                <label for="lesson_link">Lesson Link (External Link)</label>
-                <input type="url" class="form-control" id="lesson_link" name="lesson_link" value="<?php echo $lessonLink; ?>" required>
-            </div>
-            <div class="form-group">
-                <label for="course_id">Course Name</label>
-                <select class="form-control" id="course_id" name="course_id" required>
-                    <?php
-                    foreach ($courseOptions as $optionId => $optionName) {
-                        // Check if this option matches the current course ID
-                        $selected = ($optionId == $courseId) ? 'selected' : '';
-                        echo "<option value=\"$optionId\" $selected>$optionName</option>";
-                    }
-                    ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <div class="video-container">
-                    <!-- Embedded video player -->
-                    <iframe class="video-embed" src="<?php echo $lessonLink; ?>" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Update Lesson</button>
-        </form>
-        <br>
+    <br>
+    <div class="text-center"> <!-- Center-align these elements -->
+        <h2>Lesson: <?php echo $lessonName; ?></h2>
+        <p><strong>Course: <?php echo $courseName; ?></strong></p>
     </div>
+    <!-- Use htmlspecialchars_decode to render HTML content correctly -->
+   
+    <!-- Display the embedded video -->
+    <div class="video-container">
+        <iframe class="video-embed" src="<?php echo $lessonLink; ?>" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <?php if (!empty($contentFile)) { ?>
+        <a href="<?php echo $contentFile; ?>" download class="btn btn-info download-button">Download Content File</a>
+    <?php } ?><br>
+    <?php echo htmlspecialchars_decode($lessonDesc); ?>
+
+    <!-- Add a download button for the content file if available -->
+    
+</div><br>
+
 
     <?php include '../includes/footer.php'; ?>
-
-    <!-- Include TinyMCE library and initialize it on the lesson description textarea -->
-    <script src="https://cdn.tiny.cloud/1/a18et7yc09kx92w87yin53oj1w3djuz0ibkkvu404v0t3tea/tinymce/5/tinymce.min.js"
-        referrerpolicy="origin"></script>
-    <script>
-        tinymce.init({
-            selector: '#lesson_desc', // Use the ID of your textarea here
-            height: 300,
-            plugins: 'advlist autolink lists link image charmap print preview anchor textcolor',
-            toolbar: 'undo redo | formatselect | bold italic forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
-            menubar: false,
-        });
-    </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"

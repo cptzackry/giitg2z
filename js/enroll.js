@@ -1,26 +1,21 @@
-// enroll.js
+<script>
+    $(document).ready(function() {
+        $(".enroll-button").click(function() {
+            var courseId = $(this).data("course");
 
-$(document).ready(function() {
-    // Handle "Enroll Me" button click
-    $('.enroll-button').click(function() {
-        var courseId = $(this).data('course');
-
-        // Send an AJAX request to enroll the staff member in the course
-        $.ajax({
-            url: 'enroll.php', // Create a PHP file to handle enrollment
-            method: 'POST',
-            data: { courseId: courseId },
-            success: function(response) {
-                // Handle the response (e.g., show a success message)
-                if (response === 'success') {
-                    alert('Enrollment successful!');
-                } else {
-                    alert('Enrollment failed. Please try again.');
+            $.ajax({
+                type: "POST",
+                url: "enroll.php",
+                data: { course_id: courseId },
+                success: function(data) {
+                    alert(data); // Display the response data in an alert
+                    // You can add further logic here after enrolling the user
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error:", textStatus, errorThrown); // Log any errors to the console
+                    alert("An error occurred while enrolling in the course.");
                 }
-            },
-            error: function() {
-                alert('Error occurred while enrolling. Please try again later.');
-            }
+            });
         });
     });
-});
+</script>

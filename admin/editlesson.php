@@ -8,12 +8,13 @@ $lessonName = "";
 $lessonDesc = "";
 $lessonLink = "";
 $courseId = 0;
+$contentFile = ""; // Added variable for content file
 
 // Check if lesson ID is provided in the URL
 if (isset($_GET['id'])) {
     $lessonId = $_GET['id'];
 
-    // Retrieve lesson details from the database, including the associated course name
+    // Retrieve lesson details from the database, including the associated course name and content file
     $selectQuery = "SELECT lesson.*, course.name AS course_name FROM lesson JOIN course ON lesson.course_id = course.id WHERE lesson.id = ?";
     $stmt = $conn->prepare($selectQuery);
     $stmt->bind_param("i", $lessonId);
@@ -27,6 +28,7 @@ if (isset($_GET['id'])) {
             $lessonLink = $row['link'];
             $courseId = $row['course_id'];
             $courseName = $row['course_name'];
+            $contentFile = $row['content_file']; // Retrieve content file
         } else {
             echo "Lesson not found.";
             exit;
@@ -85,7 +87,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 
 <head>
-    <!-- ... (same as before) ... -->
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Edit Course</title>
+    <link rel="stylesheet" href="../style/Bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../style/Bootstrap/js/bootstrap.bundle.min.js">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../style/course.css">
+    <style>
+        /* Add dark background color to the navbar */
+        .navbar {
+            background-color: #333;
+        }
+
+        /* Style the navbar text and links for better visibility on dark background */
+        .navbar-dark .navbar-nav .nav-link {
+            color: #fff;
+        }
+
+        /* Style the active link */
+        .navbar-dark .navbar-nav .nav-item.active .nav-link {
+            color: #fff;
+            font-weight: bold;
+        }
+    </style>
+</head>
 </head>
 
 <body>
@@ -137,6 +163,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <iframe class="video-embed" src="<?php echo $lessonLink; ?>" frameborder="0" allowfullscreen></iframe>
                 </div>
             </div>
+            <div class="form-group">
+            <!-- Add this code to display the "Download Content File" button -->
+            <label for="content_file">Content File</label> <br>
+            <a href="<?php echo $contentFile; ?>" download class="btn btn-info">Download Content File</a>
+            </div>
+
             <button type="submit" class="btn btn-primary">Update Lesson</button>
         </form>
         <br>

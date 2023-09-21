@@ -1,0 +1,66 @@
+body {
+    color: #555;
+    background-color: #995BED;
+    display: flex; /* Make the body a flex container */
+    justify-content: center; /* Center the content horizontally */
+    align-items: center; /* Center the content vertically */
+    height: 100vh; /* Make the body take the full viewport height */
+    margin: 0; /* Remove default margin */
+}
+
+#sidebar-wrapper {
+    width: 300px;
+    margin-right: 20px; /* Add spacing between sidebar and content */
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 98vh;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+#sidebar-title > h3 {
+    text-align: center;
+    text-transform: uppercase;
+    color: #ccc;
+}
+
+#list {
+    list-style: none;
+    padding: 0;
+    flex-grow: 1;
+}
+
+.list-items {
+    padding: 20px;
+    cursor: pointer;
+}
+
+.list-items > i {
+    width: 25px;
+    display: inline-block;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.list-items:hover {
+    background-color: #F7F2FF;
+    color: #995BED;
+}
+
+#profile {
+    text-align: center;
+}
+
+#profile > img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+#profile > h4 {
+    margin-top: 0;
+}

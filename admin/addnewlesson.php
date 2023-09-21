@@ -4,7 +4,7 @@ include '../includes/config.php';
 
 // Initialize variables
 $lessonName = $lessonDescription = $lessonLink = $courseId = "";
-$lessonNameErr = $lessonDescriptionErr = $lessonLinkErr = $courseIdErr = "";
+$lessonNameErr = $lessonDescriptionErr = $lessonLinkErr = $courseIdErr = $contentFileErr = "";
 
 // Handle the form submission to add a new lesson
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -13,6 +13,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lessonDescription = htmlspecialchars($_POST['lesson_desc']);
     $lessonLink = htmlspecialchars($_POST['lesson_link']);
     $courseId = $_POST['course_id'];
+
+    // Check if a file was uploaded
+    if (!empty($_FILES['content_file']['name'])) {
+        $contentFileName = $_FILES['content_file']['name'];
+        $contentFileType = strtolower(pathinfo($contentFileName, PATHINFO_EXTENSION));
+        $contentFileTmpName = $_FILES['content_file']['tmp_name'];
+        $uploadDirectory = '../doc/doc'; // Specify the directory where you want to store uploaded files
+
+        // Validate file type (you can add more specific validation)
+        $allowedFileTypes = ['pdf', 'pptx', 'docx'];
+        if (!in_array($contentFileType, $allowedFileTypes)) {
+            $contentFileErr = 'Invalid file type. Only PDF, PPTX, and DOCX files are allowed.';
+        }
+
+        // Move the uploaded file to the upload directory
+        $newContentFilePath = $uploadDirectory . uniqid() . '.' . $contentFileType; // Generate a unique file name
+        if (move_uploaded_file($contentFileTmpName, $newContentFilePath)) {
+            // File uploaded successfully
+        } else {
+            $contentFileErr = 'File upload failed. Please try again.';
+        }
+    }
 
     // Validate form inputs (you can add more specific validation rules)
     if (empty($lessonName)) {
@@ -32,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Check if there are no errors
-    if (empty($lessonNameErr) && empty($lessonDescriptionErr) && empty($lessonLinkErr) && empty($courseIdErr)) {
+    if (empty($lessonNameErr) && empty($lessonDescriptionErr) && empty($lessonLinkErr) && empty($courseIdErr) && empty($contentFileErr)) {
         // Retrieve the course_name based on the selected course_id
         $courseQuery = "SELECT name FROM course WHERE id = ?";
         $stmt = $conn->prepare($courseQuery);
@@ -58,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Close the statement
         $stmt->close();
 
-        // Insert the new lesson into the database with the course_name
-        $insertQuery = "INSERT INTO lesson (name, `desc`, link, course_id, course_name) VALUES (?, ?, ?, ?, ?)";
+        // Insert the new lesson into the database with the course_name, content_file, and content_type
+        $insertQuery = "INSERT INTO lesson (name, `desc`, link, course_id, course_name, content_file, content_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insertQuery);
 
         // Check if the prepare statement was successful
@@ -68,8 +90,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Determine the content type based on the file extension
+        $contentType = '';
+        switch ($contentFileType) {
+            case 'pdf':
+                $contentType = 'pdf';
+                break;
+            case 'pptx':
+                $contentType = 'pptx';
+                break;
+            case 'docx':
+                $contentType = 'docx';
+                break;
+            // Add more cases for other file types if needed
+        }
+
         // Bind parameters
-        $stmt->bind_param("sssis", $lessonName, $lessonDescription, $lessonLink, $courseId, $courseName);
+        $stmt->bind_param("sssisss", $lessonName, $lessonDescription, $lessonLink, $courseId, $courseName, $newContentFilePath, $contentType);
 
         // Check if the bind_param was successful
         if ($stmt->execute()) {
@@ -89,18 +126,15 @@ $courseResult = $conn->query($courseQuery);
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <!-- Include necessary meta tags, stylesheets, and scripts -->
     <title>Add New Lesson</title>
     <script src="https://cdn.tiny.cloud/1/a18et7yc09kx92w87yin53oj1w3djuz0ibkkvu404v0t3tea/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-
     <link rel="stylesheet" href="../style/Bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../style/Bootstrap/js/bootstrap.bundle.min.js">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="../style/course.css">
-    <script src=" ../style/tinymce/js/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="../style/tinymce/js/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         /* Add dark background color to the navbar */
         .navbar {
@@ -119,9 +153,8 @@ $courseResult = $conn->query($courseQuery);
         }
     </style>
 </head>
-
 <body>
-<?php include '../includes/adminnavbar.php'; ?>
+    <?php include '../includes/adminnavbar.php'; ?>
 
     <div class="section web-header">
         <div class="header-container">
@@ -151,6 +184,11 @@ $courseResult = $conn->query($courseQuery);
                 <label for="lesson_link">Lesson Link</label>
                 <input type="text" class="form-control" id="lesson_link" name="lesson_link" required>
                 <span class="text-danger"><?php echo $lessonLinkErr; ?></span>
+            </div>
+            <div class="form-group">
+                <label for="content_file">Upload File</label>
+                <input type="file" class="form-control-file" id="content_file" name="content_file">
+                <span class="text-danger"><?php echo $contentFileErr; ?></span>
             </div>
             <div class="form-group">
                 <label for="course_id">Course</label>
@@ -200,5 +238,4 @@ $courseResult = $conn->query($courseQuery);
     });
     </script>
 </body>
-
 </html>

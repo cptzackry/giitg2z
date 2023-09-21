@@ -1,28 +1,41 @@
 <?php
-// Include the database configuration file
+session_start();
 include 'includes/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get the course ID from the POST data
+    // Get the course_id and staff_id from the POST data
     $courseId = $_POST['course_id'];
     
-    // Print the received data for debugging purposes
-    echo "Received course_id: " . $courseId;
+    // Check if the staff is logged in (staff ID is set in the session)
+    if (isset($_SESSION['user']['id'])) {
+        $staffId = $_SESSION['user']['id']; // Corrected session variable
+        
+        // Check if the staff member is already enrolled in the course
+        $checkQuery = "SELECT * FROM coursetaken WHERE course_id = ? AND staff_id = ?";
+        $checkStmt = $conn->prepare($checkQuery);
+        $checkStmt->bind_param("ii", $courseId, $staffId);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
 
-    // Assuming you have the staff ID and status (e.g., 'enrolled') available, you can add a record to the 'coursetaken' table.
-    // Adjust this query to match your database schema.
-    $enrollQuery = "INSERT INTO coursetaken (taken_id, staff_id, course_id, status, order_date)
-                    VALUES (null, $staffId, $courseId, 'enrolled', NOW())";
+        if ($checkResult->num_rows > 0) {
+            // Staff member is already enrolled
+            echo "You are already enrolled in this course.";
+        } else {
+            // Staff member is not enrolled, insert a new row into coursetaken
+            $insertQuery = "INSERT INTO coursetaken (staff_id, course_id, status, order_date) VALUES (?, ?, 'Enrolled', NOW())";
+            $insertStmt = $conn->prepare($insertQuery);
+            $insertStmt->bind_param("ii", $staffId, $courseId);
 
-    if ($conn->query($enrollQuery) === TRUE) {
-        echo "You have been enrolled for this course!";
+            if ($insertStmt->execute()) {
+                echo "Enrollment successful!";
+            } else {
+                echo "Enrollment failed. Please try again later.";
+            }
+        }
     } else {
-        echo "Error: " . $enrollQuery . "<br>" . $conn->error;
+        echo "You are not logged in."; // Handle the case where the staff is not logged in
     }
 } else {
     echo "Invalid request.";
 }
-
-// Close the database connection
-$conn->close();
 ?>

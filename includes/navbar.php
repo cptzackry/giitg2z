@@ -1,3 +1,10 @@
+<?php
+session_start();
+
+if (isset($_SESSION['user'])) {
+    $username = $_SESSION['staff_name'];
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,7 +53,7 @@
                 echo 'Hello, ' . $_SESSION['staff_name']; // Use $_SESSION['staff_name'] here
                 echo '</a>';
                 echo '<div class="dropdown-menu" aria-labelledby="navbarDropdown">';
-                echo '<a class="dropdown-item" href="staffprofile.php">Profile</a>';
+                echo '<a class="dropdown-item" href="staff/staffprofile.php">Profile</a>';
                 echo '<div class="dropdown-divider"></div>';
                 echo '<a class="dropdown-item" href="logout.php">Logout</a>';
                 echo '</div>';

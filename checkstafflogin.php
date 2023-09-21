@@ -21,15 +21,28 @@ if (isset($_POST['staffLogEmail']) && isset($_POST['staffLogPass'])) {
         // Store user data in a session (modify this as needed)
         $_SESSION['user'] = $row;
 
-        echo "1"; // Send a success code to the AJAX request
+        // Close the database connection
+        $stmt->close();
+        $con->close();
+
+        // Redirect to the desired page after successful login
+        header("Location: index.php");
+        exit();
     } else {
         // Authentication failed
-        echo "0"; // Send a failure code to the AJAX request
-    }
+        $_SESSION['errmsg'] = "Invalid email or password";
 
-    $stmt->close();
-    $con->close();
+        // Close the database connection
+        $stmt->close();
+        $con->close();
+
+        // Redirect back to the login page with an error message
+        header("Location: login.php");
+        exit();
+    }
 } else {
-    echo "0"; // Send a failure code if POST data is missing
+    // Redirect back to the login page if POST data is missing
+    header("Location: login.php");
+    exit();
 }
 ?>

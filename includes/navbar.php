@@ -3,6 +3,9 @@ session_start();
 
 if (isset($_SESSION['user'])) {
     $username = $_SESSION['staff_name'];
+    $loggedIn = true;
+} else {
+    $loggedIn = false;
 }
 ?>
 <!DOCTYPE html>
@@ -34,23 +37,24 @@ if (isset($_SESSION['user'])) {
             <li class="nav-item <?php if ($_SERVER['SCRIPT_NAME'] === '/index.php') echo 'active'; ?>">
                 <a class="nav-link" href="index.php">Home</a>
             </li>
-            <li class="nav-item <?php if ($_SERVER['SCRIPT_NAME'] === '/course.php') echo 'active'; ?>">
-                <a class="nav-link" href="course.php">Courses</a>
-            </li>
-            <li class="nav-item <?php if ($_SERVER['SCRIPT_NAME'] === '/contact.html') echo 'active'; ?>">
-                <a class="nav-link" href="contact.html">Support</a>
-            </li>
+            
             <?php
-            // Start the session (if not already started)
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-
-            // Check if the user is logged in and if 'staff_name' is set in the session
-            if (isset($_SESSION['user']) && isset($_SESSION['staff_name'])) {
+            if ($loggedIn) {
+                echo '<li class="nav-item dropdown">';
+                echo '<a class="nav-link dropdown-toggle" href="#" id="coursesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+                echo 'Courses';
+                echo '</a>';
+                echo '<div class="dropdown-menu" aria-labelledby="coursesDropdown">';
+                echo '<a class="dropdown-item" href="course.php">All Courses</a>';
+                echo '<a class="dropdown-item" href="takencourses.php">My Courses</a>';
+                echo '</div>';
+                echo '</li>';
+                echo '<li class="nav-item">';
+                echo '<a class="nav-link" href="feedback.php">Feedback</a>';
+                echo '</li>';
                 echo '<li class="nav-item dropdown">';
                 echo '<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
-                echo 'Hello, ' . $_SESSION['staff_name']; // Use $_SESSION['staff_name'] here
+                echo 'Hello, ' . $_SESSION['staff_name'];
                 echo '</a>';
                 echo '<div class="dropdown-menu" aria-labelledby="navbarDropdown">';
                 echo '<a class="dropdown-item" href="staff/staffprofile.php">Profile</a>';
@@ -59,6 +63,9 @@ if (isset($_SESSION['user'])) {
                 echo '</div>';
                 echo '</li>';
             } else {
+                echo '<li class="nav-item">';
+                echo '<a class="nav-link" href="course.php">Courses</a>';
+                echo '</li>';
                 echo '<li class="nav-item">';
                 echo '<a class="nav-link" href="login.php">Login</a>';
                 echo '</li>';

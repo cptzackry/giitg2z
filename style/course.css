@@ -48,8 +48,8 @@ nav button.navbar-toggler:active {
 }
 
 .dropdown-menu {
-    background-color: transparent;
-    color: #1c84c0; /* Replace with your desired text color */
+    background-color: transparent !important;
+    color: #1c84c0; 
 }
 
 .web-header {

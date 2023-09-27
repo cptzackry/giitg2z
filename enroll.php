@@ -18,8 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $checkResult = $checkStmt->get_result();
 
         if ($checkResult->num_rows > 0) {
-            // Staff member is already enrolled
-            echo "You are already enrolled in this course.";
+            // Staff member is already enrolled, show a message
+            echo '<script>';
+            echo 'alert("You are already enrolled in this course.");';
+            echo 'window.location.href = "course.php";'; // Redirect to the relevant page
+            echo '</script>';
         } else {
             // Staff member is not enrolled, insert a new row into coursetaken
             $insertQuery = "INSERT INTO coursetaken (staff_id, course_id, status, order_date) VALUES (?, ?, 'Enrolled', NOW())";
@@ -27,15 +30,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insertStmt->bind_param("ii", $staffId, $courseId);
 
             if ($insertStmt->execute()) {
-                echo "Enrollment successful!";
+                // Enrollment successful, show a message
+                echo '<script>';
+                echo 'alert("Enrollment successful!");';
+                echo 'window.location.href = "staff/staffprofile.php";'; // Redirect to the relevant page
+                echo '</script>';
             } else {
-                echo "Enrollment failed. Please try again later.";
+                // Enrollment failed, show a message
+                echo '<script>';
+                echo 'alert("Enrollment failed. Please try again later.");';
+                echo 'window.location.href = "index.php";'; // Redirect to the relevant page
+                echo '</script>';
             }
         }
     } else {
-        echo "You are not logged in."; // Handle the case where the staff is not logged in
+        // Not logged in, show a message and redirect to a login page or homepage
+        echo '<script>';
+        echo 'alert("You are not logged in.");';
+        echo 'window.location.href = "login.php";'; // Redirect to the login page or homepage
+        echo '</script>';
     }
 } else {
-    echo "Invalid request.";
+    // Invalid request, show a message and redirect to a relevant page
+    echo '<script>';
+    echo 'alert("Invalid request.");';
+    echo 'window.location.href = "staff/staffprofile.php";'; // Redirect to the relevant page
+    echo '</script>';
 }
 ?>
